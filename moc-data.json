@@ -1,0 +1,26 @@
+{
+  "messages": [],
+  "videos": [
+    {
+      "id": 1767537772830,
+      "title": "Kyangungi M.O.C 2",
+      "url": "/media/videos/kyangungi m.o.c 2.mp4",
+      "local": true,
+      "description": "",
+      "uploader": "Shadrack",
+      "timestamp": "1/4/2026, 5:42:52 PM",
+      "approved": true
+    },
+    {
+      "id": 1767595111168,
+      "title": "song",
+      "url": "https://www.youtube.com/watch?v=CwXe06xGBg4&list=RDCwXe06xGBg4&start_radio=1",
+      "description": "song",
+      "uploader": "kithua",
+      "timestamp": "1/5/2026, 9:38:31 AM",
+      "approved": true
+    }
+  ],
+  "photos": [],
+  "lastUpdated": "2026-01-05T07:12:32.307Z"
+}

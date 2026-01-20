@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Outreach Church (M.O.C) - Molding Believers, Influencing the World</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Quick Admin Login Modal -->
+    <div id="quickAdminLogin" style="position:fixed;top:10px;right:10px;background:white;padding:16px;border:1px solid #ddd;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:9999;font-family:Arial,sans-serif;">
+        <input type="text" id="quickAdminUser" placeholder="Admin username" style="display:block;width:200px;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;" />
+        <input type="password" id="quickAdminPass" placeholder="Admin password" style="display:block;width:200px;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;" />
+        <button id="quickAdminBtn" style="display:block;width:100%;padding:8px;background:#0b61ff;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">Login</button>
+        <div id="quickAdminMsg" style="margin-top:8px;font-size:12px;color:#666;"></div>
+    </div>
+    
+    <script>
+        document.getElementById('quickAdminBtn').addEventListener('click', async () => {
+            const user = document.getElementById('quickAdminUser').value;
+            const pass = document.getElementById('quickAdminPass').value;
+            const msg = document.getElementById('quickAdminMsg');
+            msg.textContent = 'Signing in...';
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, password: pass })
+                });
+                if (!res.ok) throw new Error('Unauthorized');
+                const data = await res.json();
+                if (data.token) sessionStorage.setItem('admin_token', data.token);
+                msg.textContent = 'Logged in! Scroll to Admin panel.';
+                document.getElementById('adminPanel').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('quickAdminLogin').style.display = 'none';
+                }, 1000);
+            } catch (e) {
+                msg.textContent = 'Invalid credentials';
+            }
+        });
+    </script>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo">
+                    <h1>M.O.C</h1>
+                    <p class="logo-subtitle">Mission Outreach Church</p>
+                </div>
+                <button class="mobile-toggle" id="mobileToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
+                    <li><a href="#videos">Videos</a></li>
+                    <li><a href="#events">Events</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><button id="adminToggle" class="btn btn-link">Admin</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h2>Mission Outreach Church</h2>
+            <p>Molding Believers, Influencing the World</p>
+            <p class="hero-subtitle">Led by Rev. Jacob Musyoka & Favoured Grace Syuki</p>
+            <a href="#contact" class="btn btn-primary">Get In Touch</a>
+        </div>
+    </section>
+
+    <!-- Location & Leadership Section -->
+    <section class="location-leadership">
+        <div class="container">
+            <h2>Welcome to Our Church</h2>
+            <div class="location-grid">
+                <div class="location-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Our Location</h3>
+                    <p><strong>150 meters from Mululini Market</strong></p>
+                    <p>About 3 km from Kyusyani Market</p>
+                </div>
+                <div class="location-card">
+                    <i class="fas fa-user-tie"></i>
+                    <h3>Leadership</h3>
+                    <p><strong>Rev. Jacob Musyoka</strong></p>
+                    <p><strong>Favoured Grace Syuki</strong></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About Us</h2>
+            <div class="about-grid">
+                <div class="about-card">
+                    <h3>Our Vision</h3>
+                    <p>The gospel of the Kingdom of God proclaimed to every person, godly leaders raised and communities influenced positively.</p>
+                </div>
+                <div class="about-card">
+                    <h3>Our Mission</h3>
+                    <p>To fulfill the Great Commission by making disciples of all nations, baptizing them in the Name of the Father, Son and Holy Spirit.</p>
+                </div>
+                <div class="about-card">
+                    <h3>Our Values</h3>
+                    <p>Compassion • Holiness • Family • Inclusivity • Service • Transparency & Accountability</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<!-- Events Section -->
+    <section id="events" class="events">
+        <div class="container">
+            <h2>Services & Events</h2>
+            <div class="events-grid">
+                <div class="event-card">
+                    <h3><i class="fas fa-cross"></i> Main Service</h3>
+                    <p><i class="fas fa-clock"></i> <strong>Every Sunday</strong></p>
+                    <p class="time">10:00 AM - 2:00 PM</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Main Sanctuary</p>
+                </div>
+                <div class="event-card">
+                    <h3><i class="fas fa-users"></i> Clinic Services</h3>
+                    <p><i class="fas fa-clock"></i> <strong>Every Thursday</strong></p>
+                    <p class="time">Health Services</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Health Center</p>
+                </div>
+                <div class="event-card">
+                    <h3><i class="fas fa-music"></i> Choir Practice</h3>
+                    <p><i class="fas fa-clock"></i> <strong>Every Thursday</strong></p>
+                    <p class="time">4:00 PM</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Main Hall</p>
+                </div>
+                <div class="event-card">
+                    <h3><i class="fas fa-candlestick"></i> End of Month Kesha</h3>
+                    <p><i class="fas fa-clock"></i> <strong>Last Friday Monthly</strong></p>
+                    <p class="time">Overnight Prayer</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Main Sanctuary</p>
+                </div>
+
+    <!-- Photo Gallery Section -->
+    <section id="gallery" class="gallery">
+        <div class="container">
+            <h2>Photo Gallery</h2>
+            <p class="section-subtitle">Moments from our church community</p>
+            
+            <div class="gallery-upload">
+                <form id="photoUploadForm" class="upload-form">
+                    <div id="photoUploadArea" class="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p><strong>Click to upload photos</strong> or drag and drop</p>
+                        <small>PNG, JPG, GIF up to 10MB</small>
+                    </div>
+                    <input type="file" id="photoInput" name="photos" accept="image/*" multiple style="display: none;">
+                    
+                    <div class="form-group">
+                        <label for="photoDescription">Description (Optional)</label>
+                        <textarea id="photoDescription" name="description" rows="2" placeholder="Describe these photos..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="photoUploader">Your Name (Optional)</label>
+                        <input type="text" id="photoUploader" name="uploader" placeholder="Your name">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Photos</button>
+                </form>
+            </div>
+
+            <div class="gallery-grid" id="photoGallery">
+                <div class="gallery-placeholder">
+                    <p>No photos yet. Share your church moments!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Videos Section -->
+    <section id="videos" class="videos">
+        <div class="container">
+            <h2>Church Videos</h2>
+            <p class="section-subtitle">Sermons, testimonies, and church events</p>
+            
+            <div class="videos-upload">
+                <form id="videoUploadForm" class="upload-form">
+                    <div class="form-group">
+                        <label for="videoTitle">Video Title *</label>
+                        <input type="text" id="videoTitle" name="title" required placeholder="e.g., Sunday Service, Sermon, Testimony">
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Method</label>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <label style="margin: 0;"><input type="radio" name="uploadMethod" value="youtube" checked> YouTube/URL</label>
+                            <label style="margin: 0;"><input type="radio" name="uploadMethod" value="file"> Upload File</label>
+                        </div>
+                    </div>
+                    <div id="youtubeInput" class="form-group">
+                        <label for="videoUrl">YouTube or Video URL *</label>
+                        <input type="url" id="videoUrl" name="url" placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+                    <div id="fileInput" class="form-group" style="display: none;">
+                        <label for="videoFile">Select Video File *</label>
+                        <div id="videoUploadArea" class="upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Click to upload video</strong> or drag and drop</p>
+                            <small>MP4, MOV, AVI up to 500MB</small>
+                        </div>
+                        <input type="file" id="videoFile" name="videoFile" accept="video/*" style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label for="videoDescription">Description (Optional)</label>
+                        <textarea id="videoDescription" name="description" rows="3" placeholder="Tell us about this video..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="videoUploader">Your Name (Optional)</label>
+                        <input type="text" id="videoUploader" name="uploader" placeholder="Your name">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Video</button>
+                </form>
+            </div>
+            <div class="videos-grid" id="videosContainer">
+                <div class="video-placeholder">
+                    <p>No videos yet. Share your church videos here!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Get In Touch</h2>
+            <p class="section-subtitle">We'd love to hear from you. Reach out anytime!</p>
+            <div class="contact-wrapper">
+                <form id="contactForm" class="contact-form">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="0705961358">
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" name="subject" required placeholder="What is this about?">
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message *</label>
+                        <textarea id="message" name="message" rows="5" required placeholder="Your message here..."></textarea>
+                        <small><span id="wordCount">0</span> of 500 max words</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                    <div id="successMessage" class="success-message" style="display: none;">
+                        <p>✓ Thank you! Your message has been sent successfully. We'll be in touch soon.</p>
+                    </div>
+                </form>
+                <div class="contact-info">
+                    <div class="info-card">
+                        <h3><i class="fas fa-map-marker-alt"></i> Our Location</h3>
+                        <p><strong>Mission Outreach Church (M.O.C)</strong></p>
+                        <p>150 meters from Mululini Market</p>
+                        <p>3 km from Kyusyani Market, Nairobi</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-phone"></i> WhatsApp</h3>
+                        <p><a href="https://wa.me/254705961358" target="_blank" class="whatsapp-link"><i class="fab fa-whatsapp"></i> +254 705 961 358</a></p>
+                        <p class="contact-note">Message us on WhatsApp for quick response</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-envelope"></i> Email Address</h3>
+                        <p><a href="mailto:shadrackithua75@gmail.com">shadrackithua75@gmail.com</a></p>
+                        <p class="contact-note">Send us an email anytime</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-users"></i> Leadership</h3>
+                        <p><strong>Rev. Jacob Musyoka</strong></p>
+                        <p><strong>Favoured Grace Syuki</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>  <form id="videoUploadForm" class="upload-form">
+                    <div class="form-group">
+                        <label for="videoTitle">Video Title *</label>
+                        <input type="text" id="videoTitle" name="title" required placeholder="e.g., Sunday Service, Testimony, Sermon">
+                    </div>
+                    <div class="form-group">
+                        <label for="videoUrl">YouTube or Video URL *</label>
+                        <input type="url" id="videoUrl" name="url" required placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+                    <div class="form-group">
+                        <label for="videoDescription">Description (Optional)</label>
+                        <textarea id="videoDescription" name="description" rows="3" placeholder="Tell us about this video..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="videoUploader">Your Name (Optional)</label>
+                        <input type="text" id="videoUploader" name="uploader" placeholder="Your name">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Video</button>
+                </form>
+            </div>
+            <div class="videos-grid" id="videosContainer">
+                <div class="video-placeholder">
+                    <p>No videos yet. Share your church videos here!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for viewing full gallery items -->
+    <div id="galleryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <img id="modalImage" class="modal-image" style="display: none;">
+                <video id="modalVideo" class="modal-video" style="display: none;" controls></video>
+                <iframe id="modalIframe" class="modal-iframe" style="display: none;" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+            </div>
+            <div class="modal-info">
+                <h3 id="modalTitle"></h3>
+                <p id="modalDescription"></p>
+                <p id="modalUploader"></p>
+                <p id="modalDate"></p>
+            </div>
+            <div class="modal-nav">
+                <button class="modal-btn prev-btn" id="prevBtn">← Previous</button>
+                <button class="modal-btn next-btn" id="nextBtn">Next →</button>
+            </div>
+        </div>
+    </div>
+    
+        <!-- Admin Panel (hidden by default) -->
+        <div id="adminPanel" class="admin-panel" style="display:none;">
+            <div class="admin-panel-inner">
+                <div class="admin-header">
+                    <h2>🔐 Admin Control Panel</h2>
+                    <button id="closeAdmin" class="btn btn-secondary">Close</button>
+                </div>
+                
+                <!-- Admin Navigation -->
+                <div class="admin-nav">
+                    <a href="#home" class="admin-nav-link active" data-section="home">Home</a>
+                    <a href="#about" class="admin-nav-link" data-section="about">About Us</a>
+                    <a href="#gallery" class="admin-nav-link" data-section="gallery">Gallery</a>
+                    <a href="#videos" class="admin-nav-link" data-section="videos">Videos</a>
+                    <a href="#events" class="admin-nav-link" data-section="events">Events</a>
+                    <a href="#contact" class="admin-nav-link" data-section="contact">Contact</a>
+                </div>
+
+                <!-- Admin Content Sections -->
+                <div class="admin-content">
+                    <!-- Videos Management -->
+                    <div class="admin-section active" id="admin-videos" data-section="videos">
+                        <h3>📹 Video Approvals</h3>
+                        <div id="adminVideosList" class="admin-list">
+                            <p class="muted">No videos yet.</p>
+                        </div>
+                    </div>
+
+                    <!-- Photos Management -->
+                    <div class="admin-section" id="admin-photos" data-section="gallery">
+                        <h3>📸 Photo Approvals</h3>
+                        <div id="adminPhotosList" class="admin-list">
+                            <p class="muted">No photos yet.</p>
+                        </div>
+                    </div>
+
+                    <!-- Messages Management -->
+                    <div class="admin-section" id="admin-messages" data-section="contact">
+                        <h3>💬 Contact Messages</h3>
+                        <div id="adminMessagesList" class="admin-list">
+                            <p class="muted">No messages yet.</p>
+                        </div>
+                    </div>
+
+                    <!-- Home Section -->
+                    <div class="admin-section" id="admin-home" data-section="home">
+                        <h3>🏠 Home Section</h3>
+                        <p class="admin-info">Current Status: <strong>Live</strong></p>
+                        <p>Hero section is displaying correctly. No approvals needed.</p>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="admin-section" id="admin-about" data-section="about">
+                        <h3>ℹ️ About Us Section</h3>
+                        <p class="admin-info">Current Status: <strong>Live</strong></p>
+                        <p>Vision, Mission, and Values are displayed. No approvals needed.</p>
+                    </div>
+
+                    <!-- Events Section -->
+                    <div class="admin-section" id="admin-events" data-section="events">
+                        <h3>📅 Events Section</h3>
+                        <p class="admin-info">Current Status: <strong>Live</strong></p>
+                        <p>All church services and events are displayed. No approvals needed.</p>
+                    </div>
+
+                    <!-- Stats Section -->
+                    <div class="admin-section" id="admin-stats">
+                        <h3>📊 Statistics</h3>
+                        <div id="adminStats" class="admin-stats-grid">
+                            <div class="stat-card">
+                                <h4>Total Videos</h4>
+                                <p class="stat-number">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Approved Videos</h4>
+                                <p class="stat-number">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Total Photos</h4>
+                                <p class="stat-number">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Approved Photos</h4>
+                                <p class="stat-number">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Messages</h4>
+                                <p class="stat-number">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Get In Touch</h2>
+            <div class="contact-wrapper">
+                <form class="contact-form">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="5" required></textarea>
+                        <small>0 of 50 max words</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+                <div class="contact-info">
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Mission Outreach Church (M.O.C)</h3>
+                    <p>Molding believers, influencing the world</p>
+                    <p class="footer-location">Mululini Area, Nairobi, Kenya</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Our Services</h3>
+                    <ul>
+                        <li>Main Service - 10:00 AM - 2:00 PM</li>
+                        <li>Clinic Services - Thursday</li>
+                        <li>Choir Practice - Thursday 4:00 PM</li>
+                        <li>Monthly Kesha - Last Friday</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#gallery">Photo Gallery</a></li>
+                        <li><a href="#videos">Videos</a></li>
+                        <li><a href="#events">Events</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Info</h3>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> <a href="https://wa.me/254705961358" target="_blank">+254 705 961 358</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:shadrackithua75@gmail.com">shadrackithua75@gmail.com</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Mission Outreach Church (M.O.C). All rights reserved.</p>
+            </div>
+        </div>
+    </footer>           <li>Wednesday Service - 6:00 PM</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-links">
+                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Mululini Church. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="backend.js"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>M.O.C Admin — Approvals</title>
+  <style>
+    body{font-family:Segoe UI,Roboto,Arial;margin:16px;background:#f6f8fb;color:#102a43}
+    h1{margin-bottom:8px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .panel{background:#fff;padding:12px;border-radius:8px;box-shadow:0 1px 4px rgba(16,42,67,0.08)}
+    .item{border-bottom:1px solid #eee;padding:8px 0;display:flex;justify-content:space-between;align-items:center}
+    .meta{max-width:70%}
+    .controls button{margin-left:8px}
+    .approved{color:green;font-weight:600}
+    .muted{color:#6b7785;font-size:0.9rem}
+    .btn{padding:6px 10px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}
+    .btn.primary{background:#0b61ff;color:#fff;border-color:#0b61ff}
+  </style>
+</head>
+<body>
+  <h1>Mission Outreach Church — Admin</h1>
+  <p class="muted">Approve or delete uploaded videos and photos.</p>
+  <div class="grid">
+    <div class="panel" id="videosPanel">
+      <h2>Videos</h2>
+      <div id="videosList">Loading...</div>
+    </div>
+    <div class="panel" id="photosPanel">
+      <h2>Photos</h2>
+      <div id="photosList">Loading...</div>
+    </div>
+  </div>
+
+<script>
+  const apiBase = '';
+
+  async function fetchAll() {
+    await Promise.all([loadVideos(), loadPhotos()]);
+  }
+
+  async function loadVideos() {
+    const el = document.getElementById('videosList');
+    el.textContent = 'Loading...';
+    try {
+      const res = await fetch('/api/admin/videos');
+      const list = await res.json();
+      if (!Array.isArray(list) || list.length === 0) {
+        el.innerHTML = '<p class="muted">No videos uploaded.</p>';
+        return;
+      }
+      el.innerHTML = '';
+      list.slice().reverse().forEach(v => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = `<div class="meta"><strong>${escapeHtml(v.title || 'Untitled')}</strong><div class="muted">${escapeHtml(v.uploader||'')} • ${escapeHtml(v.timestamp||'')}</div><div>${escapeHtml(v.description||'')}</div></div>`;
+        const controls = document.createElement('div');
+        controls.className = 'controls';
+        if (v.approved) {
+          const s = document.createElement('span'); s.className='approved'; s.textContent='Approved'; controls.appendChild(s);
+        } else {
+          const btn = document.createElement('button'); btn.className='btn primary'; btn.textContent='Approve'; btn.onclick = () => approveVideo(v.id);
+          controls.appendChild(btn);
+        }
+        const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.onclick = () => deleteVideo(v.id);
+        controls.appendChild(del);
+        item.appendChild(controls);
+        el.appendChild(item);
+      });
+    } catch (err) {
+      console.error(err);
+      el.innerHTML = '<p class="muted">Could not load videos.</p>';
+    }
+  }
+
+  async function loadPhotos() {
+    const el = document.getElementById('photosList');
+    el.textContent = 'Loading...';
+    try {
+      const res = await fetch('/api/admin/photos');
+      const list = await res.json();
+      if (!Array.isArray(list) || list.length === 0) {
+        el.innerHTML = '<p class="muted">No photos uploaded.</p>';
+        return;
+      }
+      el.innerHTML = '';
+      list.slice().reverse().forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = `<div class="meta"><strong>${escapeHtml(p.name || 'Photo')}</strong><div class="muted">${escapeHtml(p.uploader||'')} • ${escapeHtml(p.timestamp||'')}</div></div>`;
+        const controls = document.createElement('div');
+        controls.className = 'controls';
+        if (p.approved) {
+          const s = document.createElement('span'); s.className='approved'; s.textContent='Approved'; controls.appendChild(s);
+        } else {
+          const btn = document.createElement('button'); btn.className='btn primary'; btn.textContent='Approve'; btn.onclick = () => approvePhoto(p.id);
+          controls.appendChild(btn);
+        }
+        const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.onclick = () => deletePhoto(p.id);
+        controls.appendChild(del);
+        item.appendChild(controls);
+        el.appendChild(item);
+      });
+    } catch (err) {
+      console.error(err);
+      el.innerHTML = '<p class="muted">Could not load photos.</p>';
+    }
+  }
+
+  async function approveVideo(id) {
+    try {
+      const res = await fetch(`/api/videos/${id}/approve`, { method: 'PATCH' });
+      if (!res.ok) throw new Error('Failed');
+      await fetchAll();
+      alert('Video approved');
+    } catch (err) { console.error(err); alert('Could not approve'); }
+  }
+
+  async function deleteVideo(id) {
+    if (!confirm('Delete this video?')) return;
+    try {
+      const res = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      await fetchAll();
+      alert('Video deleted');
+    } catch (err) { console.error(err); alert('Could not delete'); }
+  }
+
+  async function approvePhoto(id) {
+    try {
+      const res = await fetch(`/api/photos/${id}/approve`, { method: 'PATCH' });
+      if (!res.ok) throw new Error('Failed');
+      await fetchAll();
+      alert('Photo approved');
+    } catch (err) { console.error(err); alert('Could not approve'); }
+  }
+
+  async function deletePhoto(id) {
+    if (!confirm('Delete this photo?')) return;
+    try {
+      const res = await fetch(`/api/photos/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      await fetchAll();
+      alert('Photo deleted');
+    } catch (err) { console.error(err); alert('Could not delete'); }
+  }
+
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[c]);
+  }
+
+  // Initialize
+  // Check auth then initialize
+  async function initAdmin() {
+    try {
+      const res = await fetch('/api/admin/auth');
+      const info = await res.json();
+      if (info && info.authenticated) {
+        fetchAll();
+      } else {
+        showLogin();
+      }
+    } catch (err) {
+      console.error('Auth check failed', err);
+      showLogin();
+    }
+  }
+
+  function showLogin() {
+    const root = document.body;
+    const container = document.createElement('div');
+    container.style.padding = '20px';
+    container.innerHTML = `
+      <h3>Admin Sign In</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;max-width:320px;">
+        <input id="adminUserPage" placeholder="Username" />
+        <input id="adminPassPage" placeholder="Password" type="password" />
+        <div style="display:flex;gap:8px;">
+          <button id="adminLoginPageBtn" class="btn primary">Sign In</button>
+        </div>
+        <div id="adminLoginPageMsg" class="muted"></div>
+      </div>
+    `;
+    const panels = document.querySelector('.grid');
+    if (panels) panels.parentNode.insertBefore(container, panels);
+
+    document.getElementById('adminLoginPageBtn').addEventListener('click', async () => {
+      const user = document.getElementById('adminUserPage').value;
+      const password = document.getElementById('adminPassPage').value;
+      const msg = document.getElementById('adminLoginPageMsg');
+      msg.textContent = 'Signing in...';
+      try {
+        const r = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user, password }) });
+        if (!r.ok) throw new Error('Unauthorized');
+        msg.textContent = 'Signed in';
+        container.remove();
+        fetchAll();
+      } catch (e) {
+        msg.textContent = 'Invalid credentials';
+      }
+    });
+  }
+
+  initAdmin();
+</script>
+</body>
+</html>
