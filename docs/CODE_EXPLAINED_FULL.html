@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CODE_EXPLAINED_FULL — M.O.C</title>
+  <style>
+    body{font-family:Segoe UI,Roboto,Arial;margin:24px;color:#102a43;background:#fff}
+    article{max-width:1100px;margin:0 auto}
+    pre{white-space:pre-wrap;word-wrap:break-word;background:#f8fafc;padding:20px;border-radius:8px;border:1px solid #e6eef6}
+    h1,h2{color:#0b61ff}
+    a{color:#0b61ff}
+  </style>
+</head>
+<body>
+  <article>
+    <h1>CODE_EXPLAINED_FULL</h1>
+    <p>Rendered Markdown content follows. If you want a downloadable PDF, use your browser's "Print → Save as PDF" option or tell me and I will create a PDF and place it in your Downloads folder.</p>
+    <hr>
+    <pre>
+<!-- DOCUMENT START: Copy of CODE_EXPLAINED_FULL.md -->
+
+$(document-content)
+
+<!-- DOCUMENT END -->
+    </pre>
+  </article>
+  <script>
+    // Fetch the markdown content and inject to the PRE element
+    fetch('/docs/CODE_EXPLAINED_FULL.md').then(r => r.text()).then(md => {
+      const el = document.querySelector('pre');
+      el.textContent = md;
+    }).catch(err => {
+      document.querySelector('pre').textContent = 'Could not load document: ' + err;
+    });
+  </script>
+</body>
+</html>
