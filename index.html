@@ -3,43 +3,1040 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Outreach Church (M.O.C) - Molding Believers, Influencing the World</title>
+    <title>Mission Outreach Church - M.O.C</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Professional Header */
+        .main-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .header-nav a, .header-nav button {
+            color: white;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .header-nav a:hover, .header-nav button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .header-nav .admin-btn {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Gallery Icons Section - Professional */
+        .gallery-icons-section {
+            background: white;
+            padding: 40px 30px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .icons-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .icons-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .icons-subtitle {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .gallery-icons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid transparent;
+        }
+
+        .gallery-icon-item:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+        }
+
+        .icon-image {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #eee;
+        }
+
+        .icon-name {
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .icon-views {
+            font-size: 11px;
+            color: #999;
+        }
+
+        /* Image Viewer Modal */
+        .image-viewer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-viewer-modal.active {
+            display: flex;
+        }
+
+        .viewer-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+        }
+
+        .viewer-image {
+            width: 100%;
+            display: block;
+        }
+
+        .viewer-info {
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .viewer-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .viewer-meta {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .viewer-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .viewer-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .viewer-close:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        .viewer-nav {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .viewer-nav button {
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .viewer-nav button:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        /* Content Section */
+        .content-section {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* User Upload Section */
+        .upload-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .upload-card {
+            padding: 30px;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            background: #f8f9ff;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-card:hover {
+            border-color: #5568d3;
+            background: #f0f2ff;
+        }
+
+        .upload-card.dragover {
+            border-color: #5568d3;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-card i {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .upload-card h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .upload-card p {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-form {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .gallery-icons-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 15px;
+            }
+
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .viewer-content {
+                max-width: 95%;
+            }
+        }
+    </style>
+
+<!-- Ensure parseJSONSafe is defined globally before any inline scripts run -->
+<script>
+if (typeof parseJSONSafe !== 'function') {
+    window.parseJSONSafe = async function (res) {
+        const text = await res.text();
+        if (!text) return {};
+        try { return JSON.parse(text); } catch (e) { return { error: 'Invalid JSON response', raw: text }; }
+    }
+}
+</script>
 </head>
 <body>
-    <!-- Quick Admin Login Modal -->
-    <div id="quickAdminLogin" style="position:fixed;top:10px;right:10px;background:white;padding:16px;border:1px solid #ddd;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:9999;font-family:Arial,sans-serif;">
-        <input type="text" id="quickAdminUser" placeholder="Admin username" style="display:block;width:200px;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;" />
-        <input type="password" id="quickAdminPass" placeholder="Admin password" style="display:block;width:200px;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:4px;" />
-        <button id="quickAdminBtn" style="display:block;width:100%;padding:8px;background:#0b61ff;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">Login</button>
-        <div id="quickAdminMsg" style="margin-top:8px;font-size:12px;color:#666;"></div>
+    <!-- Professional Header -->
+    <div class="main-header">
+        <div class="header-logo">
+            <i class="fas fa-church"></i>
+            <span>M.O.C</span>
+        </div>
+        <div class="header-nav">
+            <a href="/">Home</a>
+            <a href="#about">About</a>
+            <a href="#gallery">Gallery</a>
+            <button onclick="openUserLogin()" class="btn">👤 User Login</button>
+            <button onclick="openAdminLogin()" class="admin-btn">🔐 Admin</button>
+        </div>
     </div>
-    
+
+    <!-- Gallery Icons Section -->
+    <div class="gallery-icons-section">
+        <div class="icons-container">
+            <div class="icons-title">📸 Gallery Icons</div>
+            <div class="icons-subtitle">Click any icon to view full gallery collection</div>
+            <div class="gallery-icons-grid" id="galleryIconsGrid">
+                <div style="text-align: center; color: #999; grid-column: 1/-1; padding: 40px;">
+                    Loading gallery icons...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="image-viewer-modal" id="imageViewerModal">
+        <div class="viewer-content">
+            <button class="viewer-close" onclick="closeImageViewer()">&times;</button>
+            <img id="viewerImage" class="viewer-image" alt="Gallery Image">
+            <div class="viewer-info">
+                <div class="viewer-title" id="viewerTitle">Gallery Image</div>
+                <div class="viewer-meta">
+                    <span id="viewerDate"></span> • 
+                    <span id="viewerViews">0 views</span>
+                </div>
+                <div class="viewer-description" id="viewerDescription"></div>
+            </div>
+            <div class="viewer-nav">
+                <button onclick="prevImage()">← Previous</button>
+                <button onclick="nextImage()">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Upload Section -->
+    <div class="content-section">
+        <div class="section-title">
+            <i class="fas fa-cloud-upload-alt"></i>
+            Share Your Content
+        </div>
+        <div class="upload-section">
+            <div class="upload-grid">
+                <!-- Photo Upload -->
+                <div onclick="document.getElementById('photoInput').click()">
+                    <div class="upload-card" id="photoCard">
+                        <i class="fas fa-image"></i>
+                        <h3>Upload Photos</h3>
+                        <p>PNG, JPG, GIF up to 10MB</p>
+                        <div class="upload-form" style="margin-top: 15px;">
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="photoDescription" placeholder="Describe your photo..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Your Name</label>
+                                <input type="text" id="photoUploader" placeholder="Your name">
+                            </div>
+                            <button type="button" class="submit-btn" onclick="uploadPhotos()">Upload</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Upload -->
+                <div onclick="document.getElementById('videoInput').click()">
+                    <div class="upload-card" id="videoCard">
+                        <i class="fas fa-video"></i>
+                        <h3>Upload Videos</h3>
+                        <p>MP4, WebM up to 100MB</p>
+                        <div class="upload-form" style="margin-top: 15px;">
+                            <div class="form-group">
+                                <label>Video Title</label>
+                                <input type="text" id="videoTitle" placeholder="Video title">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="videoDescription" placeholder="Describe your video..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Your Name</label>
+                                <input type="text" id="videoUploader" placeholder="Your name">
+                            </div>
+                            <button type="button" class="submit-btn" onclick="uploadVideos()">Upload</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YouTube Upload -->
+                <div>
+                    <div class="upload-card">
+                        <i class="fas fa-play-circle"></i>
+                        <h3>YouTube Link</h3>
+                        <p>Paste YouTube video URLs</p>
+                        <div class="upload-form" style="margin-top: 15px;">
+                            <div class="form-group">
+                                <label>Video Title</label>
+                                <input type="text" id="youtubeTitle" placeholder="Video title">
+                            </div>
+                            <div class="form-group">
+                                <label>YouTube URL</label>
+                                <input type="url" id="youtubeUrl" placeholder="https://youtube.com/watch?v=...">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="youtubeDescription" placeholder="Describe the video..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Your Name</label>
+                                <input type="text" id="youtubeUploader" placeholder="Your name">
+                            </div>
+                            <button type="button" class="submit-btn" onclick="uploadYouTube()">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="photoInput" class="file-input" accept="image/*" multiple>
+    <input type="file" id="videoInput" class="file-input" accept="video/*" multiple>
+
+    <!-- User Login Modal -->
+    <div id="userLoginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+            <h2 style="margin-bottom: 20px;">User Login</h2>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Email</label>
+                <input type="email" id="userEmailLogin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Password</label>
+                <input type="password" id="userPasswordLogin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <button onclick="userLogin()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 10px;">Login</button>
+            <button onclick="closeUserLogin()" style="width: 100%; padding: 10px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer;">Close</button>
+            <div id="userLoginMsg" style="margin-top: 10px; font-size: 13px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+            <h2 style="margin-bottom: 20px;">Admin Login</h2>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Username</label>
+                <input type="text" id="adminUserLogin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Password</label>
+                <input type="password" id="adminPasswordLogin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <button onclick="adminLogin()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 10px;">Login</button>
+            <button onclick="closeAdminLogin()" style="width: 100%; padding: 10px; background: #f0f0f0; border: none; border-radius: 6px; cursor: pointer;">Close</button>
+            <div id="adminLoginMsg" style="margin-top: 10px; font-size: 13px; text-align: center;"></div>
+        </div>
+    </div>
+
     <script>
-        document.getElementById('quickAdminBtn').addEventListener('click', async () => {
-            const user = document.getElementById('quickAdminUser').value;
-            const pass = document.getElementById('quickAdminPass').value;
-            const msg = document.getElementById('quickAdminMsg');
-            msg.textContent = 'Signing in...';
+        let currentImageIndex = 0;
+        let galleryImages = [];
+
+        // Load gallery icons on page load
+        window.addEventListener('load', loadGalleryIcons);
+
+        // Load gallery icons from backend
+        async function loadGalleryIcons() {
+            try {
+                const res = await fetch('/api/gallery-icons');
+                const icons = await parseJSONSafe(res);
+
+                if (!icons || icons.length === 0) {
+                    document.getElementById('galleryIconsGrid').innerHTML = 
+                        '<div style="text-align: center; color: #999; grid-column: 1/-1; padding: 40px;">No gallery icons available yet</div>';
+                    return;
+                }
+
+                galleryImages = icons;
+                let html = '';
+
+                icons.forEach((icon, index) => {
+                    const imageSrc = icon.filePath ? `/${icon.filePath}` : icon.image;
+                    html += `
+                        <div class="gallery-icon-item" onclick="viewImage(${index})" title="Click to view">
+                            <img src="${imageSrc}" alt="${icon.name}" class="icon-image" onerror="this.src='/media/icons/placeholder.png'">
+                            <div class="icon-name">${icon.name}</div>
+                            <div class="icon-views">${icon.views || 0} views</div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('galleryIconsGrid').innerHTML = html;
+            } catch (err) {
+                console.error('Error loading gallery icons:', err);
+                document.getElementById('galleryIconsGrid').innerHTML = 
+                    '<div style="color: #999; grid-column: 1/-1;">Error loading gallery</div>';
+            }
+        }
+
+        // View image in modal
+        function viewImage(index) {
+            currentImageIndex = index;
+            const image = galleryImages[index];
+            const imageSrc = image.filePath ? `/${image.filePath}` : image.image;
+
+            document.getElementById('viewerImage').src = imageSrc;
+            document.getElementById('viewerTitle').textContent = image.name;
+            document.getElementById('viewerDate').textContent = image.timestamp || 'Recently added';
+            document.getElementById('viewerViews').textContent = (image.views || 0) + ' views';
+            document.getElementById('viewerDescription').textContent = image.description || 'No description available';
+
+            document.getElementById('imageViewerModal').classList.add('active');
+
+            // Increment view count
+            if (image.id) {
+                fetch(`/api/gallery-icons/${image.id}`, { method: 'GET' }).catch(err => console.error('Error updating views:', err));
+            }
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+            viewImage(currentImageIndex);
+        }
+
+        function prevImage() {
+            currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+            viewImage(currentImageIndex);
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewerModal').classList.remove('active');
+        }
+
+        // User login functions
+        function openUserLogin() {
+            document.getElementById('userLoginModal').style.display = 'flex';
+        }
+
+        function closeUserLogin() {
+            document.getElementById('userLoginModal').style.display = 'none';
+        }
+
+        async function userLogin() {
+            const email = document.getElementById('userEmailLogin').value;
+            const password = document.getElementById('userPasswordLogin').value;
+            const msg = document.getElementById('userLoginMsg');
+
+            if (!email || !password) {
+                msg.textContent = 'Please fill all fields';
+                msg.style.color = '#dc3545';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await parseJSONSafe(res);
+                if (!res.ok) throw new Error(data.error || 'Login failed');
+
+                sessionStorage.setItem('user_token', data.token);
+                sessionStorage.setItem('user_type', 'user');
+
+                msg.textContent = 'Login successful! Redirecting...';
+                msg.style.color = '#28a745';
+                setTimeout(() => window.location.href = '/user-portal.html', 1000);
+            } catch (err) {
+                msg.textContent = err.message;
+                msg.style.color = '#dc3545';
+            }
+        }
+
+        // Admin login functions
+        function openAdminLogin() {
+            document.getElementById('adminLoginModal').style.display = 'flex';
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('adminLoginModal').style.display = 'none';
+        }
+
+        async function adminLogin() {
+            const user = document.getElementById('adminUserLogin').value;
+            const password = document.getElementById('adminPasswordLogin').value;
+            const msg = document.getElementById('adminLoginMsg');
+
+            if (!user || !password) {
+                msg.textContent = 'Please fill all fields';
+                msg.style.color = '#dc3545';
+                return;
+            }
+
             try {
                 const res = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user, password: pass })
+                    body: JSON.stringify({ user, password })
                 });
-                if (!res.ok) throw new Error('Unauthorized');
+
                 const data = await res.json();
-                if (data.token) sessionStorage.setItem('admin_token', data.token);
-                msg.textContent = 'Logged in! Scroll to Admin panel.';
-                document.getElementById('adminPanel').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('quickAdminLogin').style.display = 'none';
-                }, 1000);
-            } catch (e) {
-                msg.textContent = 'Invalid credentials';
+                if (!res.ok) throw new Error(data.error || 'Login failed');
+
+                sessionStorage.setItem('admin_token', data.token);
+                sessionStorage.setItem('user_type', 'admin');
+
+                msg.textContent = 'Login successful! Redirecting...';
+                msg.style.color = '#28a745';
+                setTimeout(() => window.location.href = '/admin-dashboard.html', 1000);
+            } catch (err) {
+                msg.textContent = err.message;
+                msg.style.color = '#dc3545';
+            }
+        }
+
+        // Upload functions
+        async function uploadPhotos() {
+            const files = document.getElementById('photoInput').files;
+            const description = document.getElementById('photoDescription').value;
+            const uploader = document.getElementById('photoUploader').value || 'Anonymous';
+
+            if (files.length === 0) {
+                alert('Please select photos');
+                return;
+            }
+
+            const token = sessionStorage.getItem('user_token');
+            if (!token) {
+                alert('Please login to upload');
+                openUserLogin();
+                return;
+            }
+
+            let success = 0;
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('photoFile', file);
+                formData.append('description', description);
+                formData.append('uploader', uploader);
+
+                try {
+                    const res = await fetch('/api/photos/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    if (res.ok) success++;
+                } catch (err) {
+                    console.error('Upload error:', err);
+                }
+            }
+
+            alert(`${success}/${files.length} photos uploaded! Awaiting admin approval.`);
+            document.getElementById('photoInput').value = '';
+        }
+
+        async function uploadVideos() {
+            const files = document.getElementById('videoInput').files;
+            const title = document.getElementById('videoTitle').value || 'Video';
+            const description = document.getElementById('videoDescription').value;
+            const uploader = document.getElementById('videoUploader').value || 'Anonymous';
+
+            if (files.length === 0) {
+                alert('Please select videos');
+                return;
+            }
+
+            const token = sessionStorage.getItem('user_token');
+            if (!token) {
+                alert('Please login to upload');
+                openUserLogin();
+                return;
+            }
+
+            let success = 0;
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('videoFile', file);
+                formData.append('title', title);
+                formData.append('description', description);
+                formData.append('uploader', uploader);
+
+                try {
+                    const res = await fetch('/api/videos/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    if (res.ok) success++;
+                } catch (err) {
+                    console.error('Upload error:', err);
+                }
+            }
+
+            alert(`${success}/${files.length} videos uploaded! Awaiting admin approval.`);
+            document.getElementById('videoInput').value = '';
+        }
+
+        async function uploadYouTube() {
+            const title = document.getElementById('youtubeTitle').value;
+            const url = document.getElementById('youtubeUrl').value;
+            const description = document.getElementById('youtubeDescription').value;
+            const uploader = document.getElementById('youtubeUploader').value || 'Anonymous';
+
+            if (!title || !url) {
+                alert('Please fill title and URL');
+                return;
+            }
+
+            const token = sessionStorage.getItem('user_token');
+            if (!token) {
+                alert('Please login to upload');
+                openUserLogin();
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/videos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, url, description, uploader })
+                });
+
+                if (!res.ok) throw new Error('Upload failed');
+
+                alert('Video submitted! Awaiting admin approval.');
+                document.getElementById('youtubeTitle').value = '';
+                document.getElementById('youtubeUrl').value = '';
+                document.getElementById('youtubeDescription').value = '';
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Drag and drop for photos
+        const photoCard = document.getElementById('photoCard');
+        if (photoCard) {
+            photoCard.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                photoCard.classList.add('dragover');
+            });
+            photoCard.addEventListener('dragleave', () => photoCard.classList.remove('dragover'));
+            photoCard.addEventListener('drop', (e) => {
+                e.preventDefault();
+                photoCard.classList.remove('dragover');
+                document.getElementById('photoInput').files = e.dataTransfer.files;
+            });
+        }
+
+        // Drag and drop for videos
+        const videoCard = document.getElementById('videoCard');
+        if (videoCard) {
+            videoCard.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                videoCard.classList.add('dragover');
+            });
+            videoCard.addEventListener('dragleave', () => videoCard.classList.remove('dragover'));
+            videoCard.addEventListener('drop', (e) => {
+                e.preventDefault();
+                videoCard.classList.remove('dragover');
+                document.getElementById('videoInput').files = e.dataTransfer.files;
+            });
+        }
+
+        // Close modals on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeImageViewer();
+                closeUserLogin();
+                closeAdminLogin();
             }
         });
+    </script>
+</body>
+</html>
+        <div style="background:white;padding:40px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.2);max-width:500px;width:90%;">
+            <h2 style="text-align:center;margin-bottom:20px;">Sign In</h2>
+            
+            <!-- Login Type Tabs -->
+            <div style="display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #eee;">
+                <button id="userLoginTab" style="flex:1;padding:10px;border:none;background:none;cursor:pointer;border-bottom:3px solid #0b61ff;font-weight:bold;">User Login</button>
+                <button id="adminLoginTab" style="flex:1;padding:10px;border:none;background:none;cursor:pointer;color:#999;font-weight:bold;">Admin Login</button>
+            </div>
+            
+            <!-- User Login Form -->
+            <div id="userLoginForm" style="display:block;">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;font-weight:bold;">Email</label>
+                    <input type="email" id="userEmail" placeholder="your@email.com" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;" />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;font-weight:bold;">Password</label>
+                    <input type="password" id="userPassword" placeholder="Password" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;" />
+                </div>
+                <button id="userLoginBtn" style="width:100%;padding:10px;background:#0b61ff;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">Login</button>
+                <div id="userLoginMsg" style="margin-top:10px;font-size:12px;color:#666;text-align:center;"></div>
+            </div>
+            
+            <!-- Admin Login Form -->
+            <div id="adminLoginForm" style="display:none;">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;font-weight:bold;">Username</label>
+                    <input type="text" id="adminUsername" placeholder="admin" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;" />
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block;margin-bottom:5px;font-weight:bold;">Password</label>
+                    <input type="password" id="adminPassword" placeholder="Password" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;" />
+                </div>
+                <button id="adminLoginBtn" style="width:100%;padding:10px;background:#0b61ff;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">Login</button>
+                <div id="adminLoginMsg" style="margin-top:10px;font-size:12px;color:#666;text-align:center;"></div>
+            </div>
+            
+            <div style="margin-top:15px;text-align:center;">
+                <button id="closeLoginModal" style="padding:8px 16px;background:#f0f0f0;border:none;border-radius:4px;cursor:pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Login Modal Handler
+        const loginModal = document.getElementById('loginModal');
+        const userLoginTab = document.getElementById('userLoginTab');
+        const adminLoginTab = document.getElementById('adminLoginTab');
+        const userLoginForm = document.getElementById('userLoginForm');
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        
+        // Tab switching
+        userLoginTab.addEventListener('click', () => {
+            userLoginForm.style.display = 'block';
+            adminLoginForm.style.display = 'none';
+            userLoginTab.style.borderBottomColor = '#0b61ff';
+            userLoginTab.style.color = '#000';
+            adminLoginTab.style.borderBottomColor = 'transparent';
+            adminLoginTab.style.color = '#999';
+        });
+        
+        adminLoginTab.addEventListener('click', () => {
+            userLoginForm.style.display = 'none';
+            adminLoginForm.style.display = 'block';
+            adminLoginTab.style.borderBottomColor = '#0b61ff';
+            adminLoginTab.style.color = '#000';
+            userLoginTab.style.borderBottomColor = 'transparent';
+            userLoginTab.style.color = '#999';
+        });
+        
+        // User Login
+        document.getElementById('userLoginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPassword').value;
+            const msg = document.getElementById('userLoginMsg');
+            msg.textContent = 'Signing in...';
+            
+            try {
+                const res = await fetch('/api/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await parseJSONSafe(res);
+                if (!res.ok) throw new Error(data.error || 'Login failed');
+                
+                sessionStorage.setItem('user_token', data.token);
+                sessionStorage.setItem('user_type', 'user');
+                msg.textContent = 'Logged in successfully!';
+                setTimeout(() => {
+                    loginModal.style.display = 'none';
+                    updateAuthUI();
+                }, 500);
+            } catch (e) {
+                msg.textContent = e.message;
+            }
+        });
+        
+        // Admin Login
+        document.getElementById('adminLoginBtn').addEventListener('click', async () => {
+            const user = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const msg = document.getElementById('adminLoginMsg');
+            msg.textContent = 'Signing in...';
+            
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, password })
+                });
+                const data = await parseJSONSafe(res);
+                if (!res.ok) throw new Error(data.error || 'Invalid credentials');
+                
+                sessionStorage.setItem('admin_token', data.token || 'admin_' + Date.now());
+                sessionStorage.setItem('user_type', 'admin');
+                msg.textContent = 'Logged in! Redirecting to admin panel...';
+                setTimeout(() => {
+                    loginModal.style.display = 'none';
+                    updateAuthUI();
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+            } catch (e) {
+                msg.textContent = e.message;
+            }
+        });
+        
+        // Close modal
+        document.getElementById('closeLoginModal').addEventListener('click', () => {
+            loginModal.style.display = 'none';
+        });
+        
+        // Update UI based on login status
+        function updateAuthUI() {
+            const userType = sessionStorage.getItem('user_type');
+            const adminToggle = document.getElementById('adminToggle');
+            if (userType === 'admin') {
+                adminToggle.textContent = 'Admin (Logged In)';
+                adminToggle.style.background = '#28a745';
+                adminToggle.style.color = 'white';
+            } else if (userType === 'user') {
+                adminToggle.textContent = 'Upload Content';
+                adminToggle.style.background = '#17a2b8';
+                adminToggle.style.color = 'white';
+            }
+        }
+        
+        // Show login modal when admin/upload button clicked
+        document.getElementById('adminToggle').addEventListener('click', () => {
+            const userType = sessionStorage.getItem('user_type');
+            if (!userType) {
+                loginModal.style.display = 'flex';
+            } else if (userType === 'admin') {
+                document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+        
+        // Check if already logged in on page load
+        window.addEventListener('load', updateAuthUI);
     </script>
 
     <!-- Navigation -->

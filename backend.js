@@ -107,6 +107,14 @@ async function handleVideoUpload(event) {
         alert('Please enter a video title');
         return;
     }
+    
+    // Check authentication
+    const token = sessionStorage.getItem('admin_token') || sessionStorage.getItem('user_token');
+    if (!token) {
+        alert('Please login to upload videos');
+        document.getElementById('loginModal').style.display = 'flex';
+        return;
+    }
 
     try {
         if (uploadMethod === 'youtube') {
@@ -132,7 +140,10 @@ async function handleVideoUpload(event) {
 
             const response = await fetch('/api/videos', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(videoData)
             });
 
@@ -157,10 +168,13 @@ async function handleVideoUpload(event) {
 
             const response = await fetch('/api/videos/upload', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 body: formData
             });
 
-            const result = await response.json();
+            const result = await parseJSONSafe(response);
             if (!response.ok) throw new Error(result.error || 'Failed to upload video');
 
             form.reset();
@@ -264,40 +278,56 @@ function handlePhotoUpload(event) {
         return;
     }
     
-    let filesProcessed = 0;
+    // Check authentication
+    const token = sessionStorage.getItem('admin_token') || sessionStorage.getItem('user_token');
+    if (!token) {
+        alert('Please login to upload photos');
+        document.getElementById('loginModal').style.display = 'flex';
+        return;
+    }
     
-    // Convert files to base64 and store
+    let filesProcessed = 0;
+    let uploadedCount = 0;
+    
+    // Upload each file to the backend
     for (let file of files) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const photoData = {
-                id: Date.now() + Math.random(),
-                name: file.name,
-                data: e.target.result, // Base64 encoded image
-                description: description,
-                uploader: uploader,
-                timestamp: new Date().toLocaleString()
-            };
-            
-            try {
-                database.photos.push(photoData);
-                displayPhoto(photoData);
-                filesProcessed++;
-                
-                // Save after all files are processed
-                if (filesProcessed === files.length) {
-                    saveData();
-                    form.reset();
-                    alert(`${files.length} photo(s) uploaded successfully!`);
-                }
-            } catch (error) {
-                console.error('Error storing photo:', error);
+        const formData = new FormData();
+        formData.append('photoFile', file);
+        formData.append('description', description);
+        formData.append('uploader', uploader);
+        
+        fetch('/api/photos/upload', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        })
+        .then(response => {
+            filesProcessed++;
+            if (!response.ok) {
+                throw new Error('Upload failed');
             }
-        };
-        reader.onerror = function() {
-            console.error('Error reading file:', file.name);
-        };
-        reader.readAsDataURL(file);
+            return response.json();
+        })
+        .then(data => {
+            uploadedCount++;
+            
+            // Show success message when all files are uploaded
+            if (filesProcessed === files.length) {
+                form.reset();
+                alert(`${uploadedCount} photo(s) uploaded successfully and awaiting admin approval!`);
+                // Refresh the gallery to show pending photos
+                fetchServerData().then(displaySavedContent);
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading photo:', error);
+            filesProcessed++;
+            if (filesProcessed === files.length) {
+                alert(`Uploaded ${uploadedCount}/${files.length} photos. Some uploads may have failed.`);
+            }
+        });
     }
 }
 
@@ -314,9 +344,13 @@ function displayPhoto(photoData) {
     const photoCard = document.createElement('div');
     photoCard.className = 'photo-card';
     photoCard.style.cursor = 'pointer';
+    
+    // Determine image source - use filePath for backend images, fall back to base64 data
+    const imageSrc = photoData.filePath ? `/${photoData.filePath}` : photoData.data;
+    
     photoCard.innerHTML = `
         <div class="photo-container">
-            <img src="${photoData.data}" alt="${escapeHtml(photoData.name)}">
+            <img src="${imageSrc}" alt="${escapeHtml(photoData.name)}">
         </div>
         ${photoData.description ? `<p class="photo-description">${escapeHtml(photoData.description)}</p>` : ''}
         <p class="photo-uploader"><strong>By:</strong> ${escapeHtml(photoData.uploader)}</p>
@@ -362,9 +396,9 @@ async function loadAdminContent() {
             return;
         }
         
-        const videos = await videosRes.json();
-        const photos = await photosRes.json();
-        const messages = await messagesRes.json();
+        const videos = await parseJSONSafe(videosRes);
+        const photos = await parseJSONSafe(photosRes);
+        const messages = await parseJSONSafe(messagesRes);
         
         database.videos = videos || [];
         database.photos = photos || [];
@@ -416,8 +450,9 @@ function openGalleryModal(item, type) {
     }
 
     if (type === 'photo') {
-        // Display photo
-        modalImage.src = item.data;
+        // Display photo - use filePath for backend images, fall back to base64 data
+        const imageSrc = item.filePath ? `/${item.filePath}` : item.data;
+        modalImage.src = imageSrc;
         modalImage.style.display = 'block';
         modalTitle.textContent = escapeHtml(item.name || 'Photo');
         modalDescription.textContent = escapeHtml(item.description || '');
@@ -792,7 +827,7 @@ function toggleAdminPanel() {
     }
     if (panel.style.display === 'none' || !panel.style.display) {
         // Check server-side auth first
-        fetch('/api/admin/auth').then(r => r.json()).then(data => {
+        fetch('/api/admin/auth').then(parseJSONSafe).then(data => {
             console.log('Auth check result:', data);
             if (data && data.authenticated) {
                 panel.style.display = 'block';
@@ -846,8 +881,8 @@ function showAdminLoginPanel() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user, password })
                 });
-                if (!res.ok) throw new Error('Unauthorized');
-                const data = await res.json();
+                const data = await parseJSONSafe(res);
+                if (!res.ok) throw new Error(data.error || 'Unauthorized');
                 if (data.token) {
                     // Store token in sessionStorage
                     sessionStorage.setItem('admin_token', data.token);

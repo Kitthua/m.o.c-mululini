@@ -12,6 +12,15 @@ mobileToggle.addEventListener('click', () => {
     spans[2].style.transform = navMenu.classList.contains('active') ? 'rotate(-45deg) translate(7px, -7px)' : 'none';
 });
 
+// Safe JSON parse helper to avoid errors when server returns empty or non-JSON responses
+async function parseJSONSafe(res) {
+    const text = await res.text();
+    if (!text) return {};
+    try { return JSON.parse(text); } catch (e) { return { error: 'Invalid JSON response', raw: text }; }
+}
+
+// Close mobile menu when clicking on a link
+
 // Close mobile menu when clicking on a link
 const navLinks = navMenu.querySelectorAll('a');
 navLinks.forEach(link => {

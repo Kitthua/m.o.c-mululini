@@ -1,8 +1,10 @@
 /**
  * Mission Outreach Church (M.O.C) - Backend Server
  * This server handles form submissions, email notifications, and data management
+ * Database: MySQL
  */
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
@@ -10,6 +12,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const multer = require('multer');
 const crypto = require('crypto');
+const { initializeDatabase, messageOps, videoOps, photoOps, galleryIconOps, getStatistics } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,9 +21,11 @@ const PORT = process.env.PORT || 3001;
 async function ensureMediaDirs() {
     const videosDir = path.join(__dirname, 'media', 'videos');
     const photosDir = path.join(__dirname, 'media', 'photos');
+    const iconsDir = path.join(__dirname, 'media', 'icons');
     try {
         await fs.mkdir(videosDir, { recursive: true });
         await fs.mkdir(photosDir, { recursive: true });
+        await fs.mkdir(iconsDir, { recursive: true });
         console.log('✓ Media directories ready');
     } catch (error) {
         console.error('Error creating media directories:', error);
@@ -75,13 +80,34 @@ const photoUpload = multer({
     }
 });
 
+// Multer configuration for gallery icons
+const iconStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, 'media', 'icons'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'icon-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const iconUpload = multer({
+    storage: iconStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'));
+        }
+    }
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
-
-// Database file path
-const DATA_FILE = path.join(__dirname, 'moc-data.json');
 
 // Simple in-memory admin session store (token => meta)
 const adminSessions = new Map();
@@ -110,42 +136,6 @@ function requireAdmin(req, res, next) {
     
     if (token && adminSessions.has(token)) return next();
     return res.status(401).json({ error: 'Unauthorized' });
-}
-
-// Initialize database file
-async function initializeDatabase() {
-    try {
-        await fs.access(DATA_FILE);
-    } catch {
-        const initialData = {
-            messages: [],
-            videos: [],
-            photos: [],
-            lastUpdated: new Date().toISOString()
-        };
-        await fs.writeFile(DATA_FILE, JSON.stringify(initialData, null, 2));
-    }
-}
-
-// Load database
-async function loadDatabase() {
-    try {
-        const data = await fs.readFile(DATA_FILE, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Error reading database:', error);
-        return { messages: [], videos: [], photos: [] };
-    }
-}
-
-// Save database
-async function saveDatabase(data) {
-    try {
-        data.lastUpdated = new Date().toISOString();
-        await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
-    } catch (error) {
-        console.error('Error saving database:', error);
-    }
 }
 
 // Configure email service
@@ -239,10 +229,8 @@ app.post('/api/contact', async (req, res) => {
             read: false
         };
 
-        // Load database, add message, and save
-        const database = await loadDatabase();
-        database.messages.push(messageData);
-        await saveDatabase(database);
+        // Save to database
+        await messageOps.create(messageData);
 
         // Send email notification
         await sendEmailNotification(messageData);
@@ -261,8 +249,8 @@ app.post('/api/contact', async (req, res) => {
 // Get all messages (admin only)
 app.get('/api/messages', requireAdmin, async (req, res) => {
     try {
-        const database = await loadDatabase();
-        res.json(database.messages);
+        const messages = await messageOps.getAll();
+        res.json(messages);
     } catch (error) {
         console.error('Error retrieving messages:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -273,16 +261,13 @@ app.get('/api/messages', requireAdmin, async (req, res) => {
 app.patch('/api/messages/:id', requireAdmin, async (req, res) => {
     try {
         const messageId = parseInt(req.params.id);
-        const database = await loadDatabase();
+        const message = await messageOps.getById(messageId);
         
-        const message = database.messages.find(m => m.id === messageId);
         if (!message) {
             return res.status(404).json({ error: 'Message not found' });
         }
 
-        message.read = true;
-        await saveDatabase(database);
-        
+        await messageOps.updateRead(messageId, true);
         res.json({ success: true, message: 'Message marked as read' });
     } catch (error) {
         console.error('Error updating message:', error);
@@ -294,16 +279,13 @@ app.patch('/api/messages/:id', requireAdmin, async (req, res) => {
 app.delete('/api/messages/:id', requireAdmin, async (req, res) => {
     try {
         const messageId = parseInt(req.params.id);
-        const database = await loadDatabase();
-        const idx = database.messages.findIndex(m => m.id === messageId);
+        const message = await messageOps.getById(messageId);
         
-        if (idx === -1) {
+        if (!message) {
             return res.status(404).json({ error: 'Message not found' });
         }
         
-        database.messages.splice(idx, 1);
-        await saveDatabase(database);
-        
+        await messageOps.delete(messageId);
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting message:', error);
@@ -311,8 +293,8 @@ app.delete('/api/messages/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Submit video
-app.post('/api/videos', async (req, res) => {
+// Submit video (requires authentication)
+app.post('/api/videos', requireAuth, async (req, res) => {
     try {
         const { title, url, description, uploader } = req.body;
 
@@ -330,9 +312,7 @@ app.post('/api/videos', async (req, res) => {
             approved: false
         };
 
-        const database = await loadDatabase();
-        database.videos.push(videoData);
-        await saveDatabase(database);
+        await videoOps.create(videoData);
 
         res.json({ 
             success: true, 
@@ -348,8 +328,7 @@ app.post('/api/videos', async (req, res) => {
 // Get approved videos
 app.get('/api/videos', async (req, res) => {
     try {
-        const database = await loadDatabase();
-        const approvedVideos = database.videos.filter(v => v.approved === true);
+        const approvedVideos = await videoOps.getApproved();
         res.json(approvedVideos);
     } catch (error) {
         console.error('Error retrieving videos:', error);
@@ -360,8 +339,8 @@ app.get('/api/videos', async (req, res) => {
 // Admin: Get all videos (including unapproved)
 app.get('/api/admin/videos', requireAdmin, async (req, res) => {
     try {
-        const database = await loadDatabase();
-        res.json(database.videos || []);
+        const videos = await videoOps.getAll();
+        res.json(videos || []);
     } catch (error) {
         console.error('Error retrieving all videos (admin):', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -372,11 +351,9 @@ app.get('/api/admin/videos', requireAdmin, async (req, res) => {
 app.patch('/api/videos/:id/approve', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const database = await loadDatabase();
-        const v = database.videos.find(x => x.id === id);
-        if (!v) return res.status(404).json({ error: 'Video not found' });
-        v.approved = true;
-        await saveDatabase(database);
+        const video = await videoOps.getById(id);
+        if (!video) return res.status(404).json({ error: 'Video not found' });
+        await videoOps.updateApproval(id, true);
         res.json({ success: true });
     } catch (err) {
         console.error('Error approving video:', err);
@@ -388,22 +365,19 @@ app.patch('/api/videos/:id/approve', requireAdmin, async (req, res) => {
 app.delete('/api/videos/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const database = await loadDatabase();
-        const idx = database.videos.findIndex(x => x.id === id);
-        if (idx === -1) return res.status(404).json({ error: 'Video not found' });
+        const video = await videoOps.getById(id);
+        if (!video) return res.status(404).json({ error: 'Video not found' });
         
         // Delete the file if it exists
-        const videoFile = database.videos[idx].filePath;
-        if (videoFile) {
+        if (video.filePath) {
             try {
-                await fs.unlink(path.join(__dirname, videoFile));
+                await fs.unlink(path.join(__dirname, video.filePath));
             } catch (e) {
                 console.log('File already deleted or not found');
             }
         }
         
-        database.videos.splice(idx, 1);
-        await saveDatabase(database);
+        await videoOps.delete(id);
         res.json({ success: true });
     } catch (err) {
         console.error('Error deleting video:', err);
@@ -411,8 +385,8 @@ app.delete('/api/videos/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Upload video file (for local video storage)
-app.post('/api/videos/upload', videoUpload.single('videoFile'), async (req, res) => {
+// Upload video file (requires authentication)
+app.post('/api/videos/upload', requireAuth, videoUpload.single('videoFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No video file provided' });
@@ -436,9 +410,7 @@ app.post('/api/videos/upload', videoUpload.single('videoFile'), async (req, res)
             isLocalFile: true
         };
 
-        const database = await loadDatabase();
-        database.videos.push(videoData);
-        await saveDatabase(database);
+        await videoOps.create(videoData);
 
         res.json({
             success: true,
@@ -452,8 +424,23 @@ app.post('/api/videos/upload', videoUpload.single('videoFile'), async (req, res)
     }
 });
 
-// Upload photo file (admin only)
-app.post('/api/photos/upload', requireAdmin, photoUpload.single('photoFile'), async (req, res) => {
+// Middleware: require either admin or user authentication
+function requireAuth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    let token = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+    } else {
+        token = getTokenFromReq(req);
+    }
+    
+    if (token && (adminSessions.has(token) || userSessions.has(token))) return next();
+    return res.status(401).json({ error: 'Unauthorized' });
+}
+
+// Upload photo file (admin or authenticated user)
+app.post('/api/photos/upload', requireAuth, photoUpload.single('photoFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No photo file provided' });
@@ -474,9 +461,7 @@ app.post('/api/photos/upload', requireAdmin, photoUpload.single('photoFile'), as
             isLocalFile: true
         };
 
-        const database = await loadDatabase();
-        database.photos.push(photoData);
-        await saveDatabase(database);
+        await photoOps.create(photoData);
 
         res.json({
             success: true,
@@ -508,9 +493,7 @@ app.post('/api/photos', requireAdmin, async (req, res) => {
             approved: false
         };
 
-        const database = await loadDatabase();
-        database.photos.push(photoData);
-        await saveDatabase(database);
+        await photoOps.create(photoData);
 
         res.json({ 
             success: true, 
@@ -526,8 +509,7 @@ app.post('/api/photos', requireAdmin, async (req, res) => {
 // Get approved photos
 app.get('/api/photos', async (req, res) => {
     try {
-        const database = await loadDatabase();
-        const approvedPhotos = database.photos.filter(p => p.approved === true);
+        const approvedPhotos = await photoOps.getApproved();
         res.json(approvedPhotos);
     } catch (error) {
         console.error('Error retrieving photos:', error);
@@ -538,8 +520,8 @@ app.get('/api/photos', async (req, res) => {
 // Admin: Get all photos (including unapproved)
 app.get('/api/admin/photos', requireAdmin, async (req, res) => {
     try {
-        const database = await loadDatabase();
-        res.json(database.photos || []);
+        const photos = await photoOps.getAll();
+        res.json(photos || []);
     } catch (error) {
         console.error('Error retrieving all photos (admin):', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -550,11 +532,9 @@ app.get('/api/admin/photos', requireAdmin, async (req, res) => {
 app.patch('/api/photos/:id/approve', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const database = await loadDatabase();
-        const p = database.photos.find(x => x.id === id);
-        if (!p) return res.status(404).json({ error: 'Photo not found' });
-        p.approved = true;
-        await saveDatabase(database);
+        const photo = await photoOps.getById(id);
+        if (!photo) return res.status(404).json({ error: 'Photo not found' });
+        await photoOps.updateApproval(id, true);
         res.json({ success: true });
     } catch (err) {
         console.error('Error approving photo:', err);
@@ -566,11 +546,9 @@ app.patch('/api/photos/:id/approve', requireAdmin, async (req, res) => {
 app.delete('/api/photos/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const database = await loadDatabase();
-        const idx = database.photos.findIndex(x => x.id === id);
-        if (idx === -1) return res.status(404).json({ error: 'Photo not found' });
-        database.photos.splice(idx, 1);
-        await saveDatabase(database);
+        const photo = await photoOps.getById(id);
+        if (!photo) return res.status(404).json({ error: 'Photo not found' });
+        await photoOps.delete(id);
         res.json({ success: true });
     } catch (err) {
         console.error('Error deleting photo:', err);
@@ -578,18 +556,218 @@ app.delete('/api/photos/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Get statistics
+// ==================== GALLERY ICONS ENDPOINTS ====================
+
+// Upload gallery icon file (admin only)
+app.post('/api/gallery-icons/upload', requireAdmin, iconUpload.single('iconFile'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No icon file provided' });
+        }
+
+        const { title, description, category, featured, uploader } = req.body;
+        if (!title) {
+            return res.status(400).json({ error: 'Title is required' });
+        }
+
+        const iconData = {
+            id: Date.now(),
+            title,
+            description: description || '',
+            category: category || 'general',
+            iconPath: path.join('media', 'icons', req.file.filename),
+            fileSize: req.file.size,
+            fileName: req.file.filename,
+            mimeType: req.file.mimetype,
+            uploader: uploader || 'Anonymous',
+            timestamp: new Date().toLocaleString(),
+            approved: false,
+            featured: featured === 'true' || featured === true,
+            isLocalFile: true
+        };
+
+        await galleryIconOps.create(iconData);
+
+        res.json({
+            success: true,
+            message: 'Gallery icon uploaded successfully',
+            id: iconData.id,
+            iconPath: iconData.iconPath
+        });
+    } catch (error) {
+        console.error('Error uploading gallery icon:', error);
+        res.status(500).json({ error: 'Error uploading gallery icon: ' + error.message });
+    }
+});
+
+// Submit gallery icon (admin only)
+app.post('/api/gallery-icons', requireAdmin, async (req, res) => {
+    try {
+        const { title, description, category, featured, uploader } = req.body;
+
+        if (!title) {
+            return res.status(400).json({ error: 'Title is required' });
+        }
+
+        const iconData = {
+            id: Date.now(),
+            title,
+            description: description || '',
+            category: category || 'general',
+            uploader: uploader || 'Anonymous',
+            timestamp: new Date().toLocaleString(),
+            approved: false,
+            featured: featured || false
+        };
+
+        await galleryIconOps.create(iconData);
+
+        res.json({ 
+            success: true, 
+            message: 'Gallery icon submitted successfully',
+            id: iconData.id 
+        });
+    } catch (error) {
+        console.error('Error processing gallery icon:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get all approved gallery icons
+app.get('/api/gallery-icons', async (req, res) => {
+    try {
+        const approvedIcons = await galleryIconOps.getApproved();
+        res.json(approvedIcons);
+    } catch (error) {
+        console.error('Error retrieving gallery icons:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get gallery icons by category
+app.get('/api/gallery-icons/category/:category', async (req, res) => {
+    try {
+        const category = req.params.category;
+        const icons = await galleryIconOps.getByCategory(category);
+        res.json(icons);
+    } catch (error) {
+        console.error('Error retrieving gallery icons by category:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get featured gallery icons
+app.get('/api/gallery-icons/featured', async (req, res) => {
+    try {
+        const featured = await galleryIconOps.getFeatured();
+        res.json(featured);
+    } catch (error) {
+        console.error('Error retrieving featured gallery icons:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get single gallery icon with view tracking
+app.get('/api/gallery-icons/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const icon = await galleryIconOps.getById(id);
+        
+        if (!icon) {
+            return res.status(404).json({ error: 'Gallery icon not found' });
+        }
+
+        // Increment view count
+        await galleryIconOps.incrementViews(id);
+
+        res.json(icon);
+    } catch (error) {
+        console.error('Error retrieving gallery icon:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Admin: Get all gallery icons (including unapproved)
+app.get('/api/admin/gallery-icons', requireAdmin, async (req, res) => {
+    try {
+        const icons = await galleryIconOps.getAll();
+        res.json(icons || []);
+    } catch (error) {
+        console.error('Error retrieving all gallery icons (admin):', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Approve a gallery icon (admin)
+app.patch('/api/gallery-icons/:id/approve', requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const icon = await galleryIconOps.getById(id);
+        if (!icon) return res.status(404).json({ error: 'Gallery icon not found' });
+        await galleryIconOps.updateApproval(id, true);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error approving gallery icon:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Toggle featured status (admin)
+app.patch('/api/gallery-icons/:id/featured', requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { featured } = req.body;
+        const icon = await galleryIconOps.getById(id);
+        if (!icon) return res.status(404).json({ error: 'Gallery icon not found' });
+        await galleryIconOps.updateFeatured(id, featured);
+        res.json({ success: true, featured });
+    } catch (err) {
+        console.error('Error updating featured status:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Delete a gallery icon (admin)
+app.delete('/api/gallery-icons/:id', requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const icon = await galleryIconOps.getById(id);
+        if (!icon) return res.status(404).json({ error: 'Gallery icon not found' });
+        
+        // Delete the file if it exists
+        if (icon.iconPath) {
+            try {
+                await fs.unlink(path.join(__dirname, icon.iconPath));
+            } catch (e) {
+                console.log('File already deleted or not found');
+            }
+        }
+        
+        await galleryIconOps.delete(id);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting gallery icon:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get gallery icon file
+app.get('/media/icons/:filename', async (req, res) => {
+    try {
+        const filename = req.params.filename;
+        const filepath = path.join(__dirname, 'media', 'icons', filename);
+        res.sendFile(filepath);
+    } catch (error) {
+        console.error('Error serving icon file:', error);
+        res.status(404).json({ error: 'Icon not found' });
+    }
+});
+
+// ==================== END GALLERY ICONS ====================
 app.get('/api/stats', requireAdmin, async (req, res) => {
     try {
-        const database = await loadDatabase();
-        res.json({
-            totalMessages: database.messages.length,
-            unreadMessages: database.messages.filter(m => !m.read).length,
-            totalVideos: database.videos.length,
-            approvedVideos: database.videos.filter(v => v.approved).length,
-            totalPhotos: database.photos.length,
-            approvedPhotos: database.photos.filter(p => p.approved).length
-        });
+        const stats = await getStatistics();
+        res.json(stats);
     } catch (error) {
         console.error('Error retrieving stats:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -606,10 +784,40 @@ app.post('/api/admin/login', express.json(), (req, res) => {
         adminSessions.set(token, { created: Date.now() });
         // set cookie
         res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax' });
-        return res.json({ success: true });
+        return res.json({ success: true, token });
     }
     return res.status(401).json({ error: 'Invalid credentials' });
 });
+
+// User login (simple email/password - can be extended with database)
+const userSessions = new Map();
+app.post('/api/user/login', express.json(), (req, res) => {
+    const { email, password } = req.body || {};
+    
+    // Simple validation - in production, validate against database
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password required' });
+    }
+    
+    // Accept any email/password for now (can be replaced with DB validation)
+    const token = crypto.randomBytes(24).toString('hex');
+    userSessions.set(token, { email, created: Date.now() });
+    
+    return res.json({ success: true, token });
+});
+
+// Middleware: require user authentication
+function requireUser(req, res, next) {
+    const authHeader = req.headers.authorization;
+    let token = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+    }
+    
+    if (token && userSessions.has(token)) return next();
+    return res.status(401).json({ error: 'Unauthorized' });
+}
 
 // Check auth status
 app.get('/api/admin/auth', (req, res) => {
@@ -632,12 +840,18 @@ initializeDatabase().then(async () => {
         console.log(`\n🙏 Mission Outreach Church Backend Server`);
         console.log(`📍 Running on http://localhost:${PORT}`);
         console.log(`💼 Admin interface: http://localhost:${PORT}/admin`);
+        console.log(`🗄️  Database: ${process.env.DB_NAME || 'moc_church'} (MySQL)`);
         console.log('\nAPI Endpoints:');
         console.log('  POST /api/contact - Submit contact form');
         console.log('  POST /api/videos/upload - Upload video file');
+        console.log('  POST /api/gallery-icons/upload - Upload gallery icon');
         console.log('  GET  /api/messages - Get all messages');
         console.log('  GET  /api/videos - Get approved videos');
         console.log('  GET  /api/photos - Get approved photos');
+        console.log('  GET  /api/gallery-icons - Get all approved gallery icons');
+        console.log('  GET  /api/gallery-icons/featured - Get featured gallery icons');
+        console.log('  GET  /api/gallery-icons/category/:category - Get icons by category');
+        console.log('  GET  /api/gallery-icons/:id - Get single icon (increments views)');
         console.log('  GET  /api/stats - Get statistics');
         console.log('\n');
     });

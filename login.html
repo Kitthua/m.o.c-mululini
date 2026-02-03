@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.O.C - Login Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            display: flex;
+            gap: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 90%;
+        }
+
+        .login-hero {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .login-hero h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .login-hero p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .login-hero .features {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .login-hero .feature-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .login-hero .feature-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .login-hero .feature-item::before {
+            content: "✓";
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .login-form-section {
+            flex: 1;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #999;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .login-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-msg {
+            margin-top: 12px;
+            font-size: 13px;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .login-msg.error {
+            color: #dc3545;
+        }
+
+        .login-msg.success {
+            color: #28a745;
+        }
+
+        .demo-credentials {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .demo-credentials strong {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+            }
+
+            .login-hero {
+                padding: 40px 20px;
+            }
+
+            .login-form-section {
+                padding: 40px 20px;
+            }
+
+            .login-hero h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+
+<!-- Ensure parseJSONSafe is available for login scripts -->
+<script>
+if (typeof parseJSONSafe !== 'function') {
+    window.parseJSONSafe = async function (res) {
+        const text = await res.text();
+        if (!text) return {};
+        try { return JSON.parse(text); } catch (e) { return { error: 'Invalid JSON response', raw: text }; }
+    }
+}
+</script>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Hero Section -->
+        <div class="login-hero">
+            <h1>M.O.C</h1>
+            <p>Mission Outreach Church</p>
+            <p style="font-size: 14px; margin-bottom: 40px; opacity: 0.8;">Molding Believers, Influencing the World</p>
+            
+            <div class="features">
+                <div class="feature-item">Manage church content</div>
+                <div class="feature-item">Share your stories</div>
+                <div class="feature-item">Build community</div>
+                <div class="feature-item">Secure access</div>
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="login-form-section">
+            <div class="login-tabs">
+                <button class="login-tab active" data-tab="user">
+                    <span>👤 User Login</span>
+                </button>
+                <button class="login-tab" data-tab="admin">
+                    <span>🔐 Admin Login</span>
+                </button>
+            </div>
+
+            <!-- User Login Form -->
+            <form class="login-form active" id="userForm">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="userEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="userPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-btn">Sign In as User</button>
+                <div class="login-msg" id="userMsg"></div>
+
+                <div class="demo-credentials">
+                    <strong>Demo:</strong><br>
+                    Email: user@moc.church<br>
+                    Password: user123
+                </div>
+            </form>
+
+            <!-- Admin Login Form -->
+            <form class="login-form" id="adminForm">
+                <div class="form-group">
+                    <label>Admin Username</label>
+                    <input type="text" id="adminUsername" placeholder="Enter admin username" required>
+                </div>
+                <div class="form-group">
+                    <label>Admin Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="login-btn">Sign In as Admin</button>
+                <div class="login-msg" id="adminMsg"></div>
+
+                <div class="demo-credentials">
+                    <strong>Demo Admin:</strong><br>
+                    Username: admin<br>
+                    Password: letmein
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.login-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                
+                // Update tabs
+                document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update forms
+                document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+                if (tabName === 'user') {
+                    document.getElementById('userForm').classList.add('active');
+                } else {
+                    document.getElementById('adminForm').classList.add('active');
+                }
+            });
+        });
+
+        // User Login
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPassword').value;
+            const msg = document.getElementById('userMsg');
+
+            msg.textContent = 'Signing in...';
+            msg.className = 'login-msg';
+
+            try {
+                const res = await fetch('/api/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await parseJSONSafe(res);
+                if (!res.ok) throw new Error(data.error || 'Login failed');
+
+                sessionStorage.setItem('user_token', data.token);
+                sessionStorage.setItem('user_type', 'user');
+                sessionStorage.setItem('user_email', email);
+
+                msg.textContent = 'Login successful! Redirecting...';
+                msg.className = 'login-msg success';
+                
+                setTimeout(() => {
+                    window.location.href = '/user-portal.html';
+                }, 1000);
+            } catch (err) {
+                msg.textContent = err.message;
+                msg.className = 'login-msg error';
+            }
+        });
+
+        // Admin Login
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const msg = document.getElementById('adminMsg');
+
+            msg.textContent = 'Signing in...';
+            msg.className = 'login-msg';
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: username, password })
+                });
+
+                const data = await parseJSONSafe(res);
+                if (!res.ok) throw new Error(data.error || 'Login failed');
+
+                sessionStorage.setItem('admin_token', data.token);
+                sessionStorage.setItem('user_type', 'admin');
+                sessionStorage.setItem('admin_user', username);
+
+                msg.textContent = 'Admin login successful! Redirecting...';
+                msg.className = 'login-msg success';
+                
+                setTimeout(() => {
+                    window.location.href = '/admin-dashboard.html';
+                }, 1000);
+            } catch (err) {
+                msg.textContent = err.message;
+                msg.className = 'login-msg error';
+            }
+        });
+
+        // Auto-login if returning user
+        window.addEventListener('load', () => {
+            const token = sessionStorage.getItem('user_token') || sessionStorage.getItem('admin_token');
+            const userType = sessionStorage.getItem('user_type');
+            
+            if (token && userType === 'user') {
+                window.location.href = '/user-portal.html';
+            } else if (token && userType === 'admin') {
+                window.location.href = '/admin-dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

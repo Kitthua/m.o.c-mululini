@@ -35,6 +35,13 @@
 <script>
   const apiBase = '';
 
+  // Safe JSON parser to avoid JSON.parse errors when responses are empty or not JSON
+  async function parseJSONSafe(res) {
+    const text = await res.text();
+    if (!text) return {};
+    try { return JSON.parse(text); } catch (e) { return { error: 'Invalid JSON response', raw: text }; }
+  }
+
   async function fetchAll() {
     await Promise.all([loadVideos(), loadPhotos()]);
   }
@@ -44,7 +51,7 @@
     el.textContent = 'Loading...';
     try {
       const res = await fetch('/api/admin/videos');
-      const list = await res.json();
+      const list = await parseJSONSafe(res);
       if (!Array.isArray(list) || list.length === 0) {
         el.innerHTML = '<p class="muted">No videos uploaded.</p>';
         return;
@@ -78,7 +85,7 @@
     el.textContent = 'Loading...';
     try {
       const res = await fetch('/api/admin/photos');
-      const list = await res.json();
+      const list = await parseJSONSafe(res);
       if (!Array.isArray(list) || list.length === 0) {
         el.innerHTML = '<p class="muted">No photos uploaded.</p>';
         return;
@@ -155,7 +162,7 @@
   async function initAdmin() {
     try {
       const res = await fetch('/api/admin/auth');
-      const info = await res.json();
+      const info = await parseJSONSafe(res);
       if (info && info.authenticated) {
         fetchAll();
       } else {
